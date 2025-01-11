@@ -109,7 +109,7 @@ const Auth: React.FC<AuthProps> = ({isDarkMode, setIsDarkMode, notifySuccess, no
   };
 
   const handleOAuth = () => {
-    window.location.href = "http://localhost:8080/auth/google";
+    window.location.href = "https://node-auth-server-k6wi.onrender.com/auth/google";
   };
 
   const handleFPModal = (e: React.MouseEvent<HTMLButtonElement>) => {
