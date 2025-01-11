@@ -11,13 +11,20 @@ import {
 } from "lucide-react";
 import NightBg from "../assets/night-bg.jpg";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
 import { useLocation } from "react-router-dom";
+import FPModal from "./FPModal";
+import base_url from "../utils/api";
 
-function Auth() {
+type AuthProps = {
+    isDarkMode: boolean;
+    setIsDarkMode: React.Dispatch<React.SetStateAction<boolean>>;
+    notifySuccess: (msg: String) => void;
+    notifyError: (msg: String) => void;
+}
+
+const Auth: React.FC<AuthProps> = ({isDarkMode, setIsDarkMode, notifySuccess, notifyError}) => {
   const [isLogin, setIsLogin] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const base_url = "http://localhost:8080";
+  const [isFPModalOpen, setFPModalOpen] = useState(false);
   const location = useLocation();
   const [formData, setFormData] = useState({
     username: "",
@@ -28,7 +35,7 @@ function Auth() {
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     if (queryParams.get("login") === "google-success") {
-      toast.success("Login successful!");
+      notifySuccess("Login successful!");
       // Optionally, clear the query parameter to prevent repeated toasts
       window.history.replaceState({}, document.title, "/");
     }
@@ -65,7 +72,7 @@ function Auth() {
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         setIsLogin(true);
-        toast.success("Login Successful!");
+        notifySuccess("Login Successful!");
         setFormData({
           username: "",
           email: "",
@@ -74,7 +81,7 @@ function Auth() {
       }
     } catch (error) {
       console.error("Error Signing in the user.", error);
-      toast.error("Invalid Credentials!");
+      notifyError("Invalid Credentials!");
     }
   };
 
@@ -87,7 +94,7 @@ function Auth() {
       };
       const response = await axios.post(`${base_url}/auth/register`, payload);
       if (response.data.success) {
-        toast.success("User Created Successfully!");
+        notifySuccess("User Created Successfully!");
         setFormData({
           username: "",
           email: "",
@@ -97,7 +104,7 @@ function Auth() {
       }
     } catch (error) {
       console.error("Error creating the user.", error);
-      toast.error("Error creating user!");
+      notifyError("Error creating user!");
     }
   };
 
@@ -105,14 +112,14 @@ function Auth() {
     window.location.href = "http://localhost:8080/auth/google";
   };
 
+  const handleFPModal = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setFPModalOpen(true);
+  }
+
   return (
     <>
-      <ToastContainer
-        className="max-w-[300px] ms-auto fixed right-0 top-4"
-        position="top-right"
-        autoClose={4000}
-        limit={1}
-      />
+      
       <div
         className={`min-h-screen flex flex-col md:flex-row ${
           isDarkMode ? "dark" : ""
@@ -131,7 +138,7 @@ function Auth() {
         </button>
 
         {/* Left Panel - Image/Brand */}
-        <div className="md:w-1/2 relative overflow-hidden">
+        <div className="md:w-1/2 max-md:min-h-[40vh] relative overflow-hidden">
           <div
             className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
             style={{ backgroundImage: `url(${backgroundImage})` }}
@@ -147,12 +154,12 @@ function Auth() {
                   Wanderlens
                 </span>
               </div>
-              <p className="text-white/90 mt-6 text-lg font-light">
+              <p className="text-white/90 mt-2 text-lg font-light">
                 Capture your adventures. Share your story.
               </p>
             </div>
 
-            <div>
+            <div className="max-md:mt-40">
               <h2 className="text-white text-3xl md:text-4xl font-bold mb-4">
                 {isLogin ? "Welcome Back!" : "Start Your Journey"}
               </h2>
@@ -308,12 +315,12 @@ function Auth() {
                   </div>
 
                   <div className="text-sm">
-                    <a
-                      href="#"
+                    <button
+                      onClick={(e)=>handleFPModal(e)}
                       className="font-medium text-emerald-500 hover:text-emerald-400"
                     >
                       Forgot password?
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
@@ -386,7 +393,13 @@ function Auth() {
             </div>
           </div>
         </div>
+      {isFPModalOpen && (
+        <div className="min-h-screen w-full fixed bg-black/30 z-50 backdrop-blur-sm flex justify-center items-center">
+            <FPModal setFPModalOpen={setFPModalOpen}/>
+        </div>
+      )}
       </div>
+
     </>
   );
 }
